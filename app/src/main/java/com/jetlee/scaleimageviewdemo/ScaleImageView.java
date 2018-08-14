@@ -122,6 +122,9 @@ public class ScaleImageView extends View {
         }
     }
 
+    private float pointOffsetX;
+    private float pointOffsetY;
+
     class DoubleTapListener implements GestureDetector.OnDoubleTapListener {
 
         @Override
@@ -133,6 +136,8 @@ public class ScaleImageView extends View {
         public boolean onDoubleTap(MotionEvent e) {
             isScale = !isScale;
             if (isScale) {
+                dragOffsetX = getWidth()/2 - e.getX();
+                dragOffsetY = getHeight()/2 - e.getY();
                 getScaleObjectAnimator().start();
             } else {
                 getScaleObjectAnimator().reverse();
