@@ -1,5 +1,8 @@
 package com.jetlee.scaleimageviewdemo;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -19,8 +22,22 @@ public class ScaleImageView extends View {
     private static final float IMAGE_SIZE = Utils.dpToPx(200);
     private Paint paint;
 
-    private GestureDetector gestureDetector;
+    // 缩放比例
+    private float scale;
+    private float smallScale;
 
+    // 拖动图片的偏移量
+    private float dragOffsetX;
+    private float dragOffsetY;
+
+    private float bitmapWidth;
+    private float bitmapHeight;
+    private boolean isScale;
+    private ObjectAnimator objectAnimator;
+    // 动画系数
+    private float scalingFraction;
+
+    private GestureDetector gestureDetector;
     private GestureDetector.OnGestureListener simpleGestureListener = new SimpleGestureListener();
     private GestureDetector.OnDoubleTapListener doubleTapListener = new DoubleTapListener();
 
@@ -41,7 +58,6 @@ public class ScaleImageView extends View {
 
     private void init(Context context) {
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        bitmap = Utils.getBitmap(getResources(), (int) IMAGE_SIZE);
 
         gestureDetector = new GestureDetector(context, simpleGestureListener);
         gestureDetector.setOnDoubleTapListener(doubleTapListener);
@@ -49,34 +65,55 @@ public class ScaleImageView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        boolean isDetect = gestureDetector.onTouchEvent(event);
-        if (isDetect) {
-            return gestureDetector.onTouchEvent(event);
-        }
-        return super.onTouchEvent(event);
+        return gestureDetector.onTouchEvent(event);
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
+        bitmap = Utils.getBitmap(getResources(), getWidth());
+        // 图片宽度
+        bitmapWidth = getWidth();
+        // 图片高度
+        bitmapHeight = bitmapWidth / (bitmap.getWidth() / bitmap.getHeight());
+        scale = getHeight() / bitmapHeight;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        canvas.drawBitmap(bitmap, (getWidth() - IMAGE_SIZE) / 2, (getHeight() - IMAGE_SIZE) / 2, paint);
+        // 拖动图片
+        canvas.translate(dragOffsetX * scalingFraction, dragOffsetY * scalingFraction);
+
+        float realScale = 1 + (scale - 1) * scalingFraction;
+        canvas.scale(realScale, realScale, getWidth() / 2, getHeight() / 2);
+        //  把原点移到中心
+        canvas.translate(0, (getHeight() - bitmapHeight) / 2);
+        canvas.drawBitmap(bitmap, 0, 0, paint);
     }
 
     class SimpleGestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onDown(MotionEvent e) {
-            return super.onDown(e);
+            return true;
         }
 
         @Override
-        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            return super.onScroll(e1, e2, distanceX, distanceY);
+        public boolean onScroll(MotionEvent down, MotionEvent event, float distanceX, float distanceY) {
+            if (isScale) {
+                float widthBound = (bitmapWidth * scale - getWidth()) / 2;
+                float heightBound = (bitmapHeight * scale - getHeight()) / 2;
+                dragOffsetX -= distanceX;
+                dragOffsetY -= distanceY;
+
+                // -widthBound是左边界，widthBound是右边界，移动的范围在两者内
+                dragOffsetX = Math.min(Math.max(dragOffsetX, -widthBound), widthBound);
+                dragOffsetY = Math.min(Math.max(dragOffsetY, -heightBound), heightBound);
+
+                invalidate();
+            }
+            return false;
         }
 
         @Override
@@ -94,6 +131,12 @@ public class ScaleImageView extends View {
 
         @Override
         public boolean onDoubleTap(MotionEvent e) {
+            isScale = !isScale;
+            if (isScale) {
+                getScaleObjectAnimator().start();
+            } else {
+                getScaleObjectAnimator().reverse();
+            }
             return false;
         }
 
@@ -103,5 +146,29 @@ public class ScaleImageView extends View {
         }
     }
 
+    private ObjectAnimator getScaleObjectAnimator() {
+        if (objectAnimator == null) {
+            objectAnimator = ObjectAnimator.ofFloat(this, "scalingFraction", 0, 1);
+            objectAnimator.setDuration(200);
+            objectAnimator.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation, boolean isReverse) {
+                    if (isReverse) {  // 当恢复时把偏移置0，回到中心。
+                        dragOffsetX = 0;
+                        dragOffsetY = 0;
+                    }
+                }
+            });
+        }
+        return objectAnimator;
+    }
 
+    public float getScalingFraction() {
+        return scalingFraction;
+    }
+
+    public void setScalingFraction(float scalingFraction) {
+        this.scalingFraction = scalingFraction;
+        invalidate();
+    }
 }
