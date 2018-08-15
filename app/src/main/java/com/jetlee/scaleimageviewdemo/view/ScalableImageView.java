@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -14,9 +15,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.OverScroller;
 
+import com.jetlee.scaleimageviewdemo.R;
 import com.jetlee.scaleimageviewdemo.Utils;
 
 public class ScalableImageView extends View {
+    private Context context;
+
     private static final float IMAGE_SIZE = Utils.dpToPx(200);
     private static final float SCALE_OVER_FACTOR = 2;
 
@@ -43,16 +47,22 @@ public class ScalableImageView extends View {
 
     public ScalableImageView(Context context) {
         super(context);
-        init(context);
     }
 
     public ScalableImageView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        init(context);
+        this.context = context;
+        init(attrs);
     }
 
-    private void init(Context context) {
-        bitmap = Utils.getBitmap(getResources(), (int) imageWidth);
+    public ScalableImageView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        init(attrs);
+    }
+
+    private void init(AttributeSet attrs) {
+
+        bitmap = Utils.getBitmap(getResources(), (int) imageWidth,R.mipmap.test1);
         imageHeight = bitmap.getHeight();
 
         gestureDetector = new GestureDetector(context, gestureListener);

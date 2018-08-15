@@ -18,17 +18,17 @@ public class Utils {
     /**
      * 调整图片大小
      *
-     * @param size
+     * @param resWidth
      * @return
      */
-    public static Bitmap getBitmap(Resources res, int size) {
+    public static Bitmap getBitmap(Resources res, int resWidth,int resourceId) {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
-        BitmapFactory.decodeResource(res, R.mipmap.logo, options);
+        BitmapFactory.decodeResource(res, resourceId, options);
         options.inJustDecodeBounds = false;
-        options.inDensity = Math.min(options.outWidth, options.outHeight);
-        options.inTargetDensity = size;
-        return BitmapFactory.decodeResource(res, R.mipmap.logo, options);
+        options.inDensity = options.outWidth;
+        options.inTargetDensity = resWidth;
+        return BitmapFactory.decodeResource(res, resourceId, options);
     }
 
 }
