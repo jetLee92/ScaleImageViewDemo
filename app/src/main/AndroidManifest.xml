@@ -16,10 +16,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Button1Activity" />
-        <activity android:name=".Button2Activity" />
-        <activity android:name=".Button3Activity" />
-        <activity android:name=".Button4Activity" />
+        <activity
+            android:name=".Button1Activity"
+            android:theme="@style/FullScreen" />
+        <activity
+            android:name=".Button2Activity"
+            android:theme="@style/FullScreen" />
+        <activity
+            android:name=".Button3Activity"
+            android:theme="@style/FullScreen" />
+        <activity
+            android:name=".Button4Activity"
+            android:theme="@style/FullScreen" />
     </application>
 
 </manifest>

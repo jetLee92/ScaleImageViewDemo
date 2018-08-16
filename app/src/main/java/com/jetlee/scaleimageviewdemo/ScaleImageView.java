@@ -117,7 +117,11 @@ public class ScaleImageView extends View {
         super.onDraw(canvas);
 
         // 拖动图片
-        canvas.translate(dragOffsetX * scalingFraction, dragOffsetY * scalingFraction);
+        if (!isScale&&bitmapHeight > getHeight()) {
+            canvas.translate(dragOffsetX, dragOffsetY);
+        } else {
+            canvas.translate(dragOffsetX * scalingFraction, dragOffsetY * scalingFraction);
+        }
 
         float realScale = 1 + (scale - 1) * scalingFraction;
         canvas.scale(realScale, realScale, getWidth() / 2, getHeight() / 2);
