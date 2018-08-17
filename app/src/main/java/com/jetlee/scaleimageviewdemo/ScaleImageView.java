@@ -14,6 +14,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.OverScroller;
 
@@ -43,6 +44,8 @@ public class ScaleImageView extends View {
     // 动画系数
     private float scalingFraction;
 
+    private ScaleGestureDetector scaleGestureDetector;
+    private SimpleScaleGestureListener simpleScaleGestureListener = new SimpleScaleGestureListener();
     private GestureDetector gestureDetector;
     private GestureDetector.OnGestureListener simpleGestureListener = new SimpleGestureListener();
     private GestureDetector.OnDoubleTapListener doubleTapListener = new DoubleTapListener();
@@ -75,6 +78,7 @@ public class ScaleImageView extends View {
         typedArray.recycle();
 
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        scaleGestureDetector = new ScaleGestureDetector(context, simpleScaleGestureListener);
         gestureDetector = new GestureDetector(context, simpleGestureListener);
         gestureDetector.setOnDoubleTapListener(doubleTapListener);
         overScroller = new OverScroller(context);
@@ -82,7 +86,9 @@ public class ScaleImageView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        return gestureDetector.onTouchEvent(event);
+        gestureDetector.onTouchEvent(event);
+        scaleGestureDetector.onTouchEvent(event);
+        return true;
     }
 
     @Override
@@ -117,7 +123,7 @@ public class ScaleImageView extends View {
         super.onDraw(canvas);
 
         // 拖动图片
-        if (!isScale&&bitmapHeight > getHeight()) {
+        if (!isScale && bitmapHeight > getHeight()) {
             canvas.translate(dragOffsetX, dragOffsetY);
         } else {
             canvas.translate(dragOffsetX * scalingFraction, dragOffsetY * scalingFraction);
@@ -128,6 +134,29 @@ public class ScaleImageView extends View {
         //  把原点移到中心
         canvas.translate((getWidth() - bitmapWidth) / 2, (getHeight() - bitmapHeight) / 2);
         canvas.drawBitmap(bitmap, 0, 0, paint);
+    }
+
+    class SimpleScaleGestureListener implements ScaleGestureDetector.OnScaleGestureListener {
+
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            float focusX = detector.getFocusX();
+            float focusY = detector.getFocusY();
+            float scaleFactor = detector.getScaleFactor();
+
+            invalidate();
+            return true;
+        }
+
+        @Override
+        public boolean onScaleBegin(ScaleGestureDetector detector) {
+            return true;
+        }
+
+        @Override
+        public void onScaleEnd(ScaleGestureDetector detector) {
+
+        }
     }
 
     class SimpleGestureListener extends GestureDetector.SimpleOnGestureListener {
